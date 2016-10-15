@@ -1,16 +1,16 @@
 var Warframe = require('../index'),
     warframe = new Warframe({ storeAccount: true }),
-    fsPath = require('fs-path');
+    fsPath = require('fs-path'),
+    moment = require("moment"),
+    config = require('./test_config.json');
 
-var config = require('./test_config.json');
-
+moment.locale("de");
 warframe.login(config.login.username, config.login.password, function(res){
     
     warframe.getGuild(function(view){
         
         var guild = JSON.parse(view);
         var counter = 0;
-        var guilddata = [];
         
         guild.Members.forEach(function(member){
             
@@ -18,25 +18,23 @@ warframe.login(config.login.username, config.login.password, function(res){
                 
                 var playerinfo = JSON.parse(data);
                 
+                if (member.DisplayName.endsWith(".")) {
+                    var memberName = member.DisplayName.substring(0, member.DisplayName.length - 1);
+                } else {
+                    var memberName = member.DisplayName;
+                }
+                
                 console.log("collecting:");
                 console.log('"username": ' + '"' + member.DisplayName + '"');
                 console.log('"id": ' + '"' + member._id.$id + '"');
                 
-                fsPath.writeFile(__dirname+"/userdata/"+member.DisplayName+"_"+member._id.$id+".json", JSON.stringify(playerinfo), function(err) {
-                    if(err) {
-                        return console.log(err);
-                    }
-                    console.log(__dirname+"/userdata/"+member._id.$id+"_"+member.DisplayName+".json saved.\n");
-                });
+                var path = "\\userdata\\"+memberName+"\\"+member._id.$id+"\\"+moment().format("DD MMMM YYYY, HH-mm")+".json";
                 
-                guilddata.push({"username": member.DisplayName, "id": member._id.$id, "data": [playerinfo]});
-                console.log("test");
-                fsPath.writeFile(__dirname+"/guilddata.json", JSON.stringify(guilddata), function(err) {
+                fsPath.writeFile(__dirname+path, JSON.stringify(playerinfo), function(err) {
                     if(err) {
                         return console.log(err);
                     }
-                    console.log(__dirname+"/userdata/"+member._id.$id+"_"+member.DisplayName+".json saved.\n");
-                    
+                    console.log(__dirname+path+" saved.\n");
                 });
                 
             });
